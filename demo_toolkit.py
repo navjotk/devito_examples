@@ -76,6 +76,12 @@ class demo:
 
         return receiver_coords
 
+    def get_true_model(self):
+        return self.model
+
+    def get_initial_model(self):
+        return self.model0
+
 class marmousi2D(demo):
     """
     Class to setup 2D marmousi demo.
@@ -129,12 +135,6 @@ class marmousi2D(demo):
         start = 2 * self.spacing[0]
         finish = self.origin[0] + (self.dimensions[0] - 2) * self.spacing[0]
         self.sources = numpy.linspace(start, finish, num=self.nsrc)
-
-    def get_true_model(self):
-        return self.model
-
-    def get_initial_model(self):
-        return self.model0
 
     def get_shot(self, i):
         location = numpy.zeros((1, 2))
@@ -218,12 +218,6 @@ class small_marmousi2D(demo):
         self.sources = numpy.linspace(start,
                                       finish,
                                       num=self.nsrc)
-
-    def get_true_model(self):
-        return self.model
-
-    def get_initial_model(self):
-        return self.model0
 
     def get_shot(self, i):    
         location = numpy.zeros((1, 2))
@@ -340,12 +334,6 @@ class small_phantoms2D(demo):
         start = 2 * spacing[0]
         finish = origin[0] + (dimensions[0] - 2) * spacing[0]
         self.sources = numpy.linspace(start, finish, num=nsrc)
-
-    def get_true_model(self):
-        return self.model
-
-    def get_initial_model(self):
-        return self.model0
 
     def get_shot(self, i):
         location = (self.sources[i], self.origin[1] + 2 * self.spacing[1])
