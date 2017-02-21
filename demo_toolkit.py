@@ -18,6 +18,73 @@ fig_size[0] = 18
 fig_size[1] = 13
 plt.rcParams["figure.figsize"] = fig_size
 
+
+def drawWiggle(axes, x, t, xoffset=0.0,
+               posColor='red', negColor='blue', alpha=0.5, **kwargs):
+    """
+    Draw signal in wiggle style into a given axes.
+
+    Parameters
+    ----------
+    axes : matplotlib axes
+        To plot into
+
+    x : array [float]
+        Signal.
+
+    t : array
+        Time base for x
+
+    xoffset : float
+        Move wiggle plot along x axis
+
+    posColor : str
+        Need to be convertible to matplotlib color. Fill positive areas with.
+
+    negColor : str
+        Need to be convertible to matplotlib color. Fill negative areas with.
+
+    alpha : float
+        Opacity for fill area.
+
+    **kwargs : dict()
+        Will be forwarded to matplotlib.axes.fill
+
+    Examples
+    --------
+    >>> from pygimli.physics.seismics import ricker, drawWiggle
+    >>> import matplotlib.pyplot as plt
+    >>> import numpy as np
+    >>> t = np.arange(0, 0.02, 1./5000)
+    >>> r = ricker(t, 100., 1./100)
+    >>> fig = plt.figure()
+    >>> ax = fig.add_subplot(1,1,1)
+    >>> drawWiggle(ax, r, t, xoffset=0, posColor='red', negColor='blue',
+    ...            alpha=0.2)
+    >>> drawWiggle(ax, r, t, xoffset=1)
+    >>> drawWiggle(ax, r, t, xoffset=2, posColor='black', negColor='white',
+    ...            alpha=1.0)
+    >>> ax.invert_yaxis()
+    >>> plt.show()
+    """
+    wiggle, = axes.plot(x + xoffset, t, color='black', **kwargs)
+
+    if len(t) > 1:
+        tracefill = numpy.array(x)
+        tracefill[0] = 0.0
+        tracefill[-1] = 0.0
+        tracefill[numpy.nonzero(x > x[0])] = 0
+        fill, = axes.fill(tracefill + xoffset, t, color=negColor,
+                          alpha=alpha, linewidth=0)
+
+        tracefill = numpy.array(x)
+        tracefill[0] = 0.0
+        tracefill[-1] = 0.0
+        tracefill[numpy.nonzero(x < x[0])] = 0
+        fill, = axes.fill(tracefill + xoffset, t, color=posColor,
+                          alpha=alpha, linewidth=0)
+
+
 class demo:
     origin = None
     spacing = None
@@ -43,14 +110,17 @@ class demo:
     # Show the shot record at the receivers.
     def plot_record(self, rec):
         limit = 0.05*max(abs(numpy.min(rec)), abs(numpy.max(rec)))
-        print (limit)
-        print (rec.shape)
-        l = plt.imshow(rec, vmin=-limit, vmax=limit,
-                cmap=cm.gray)
-        plt.axis('auto')
-        plt.xlabel('X position (m)')
-        plt.ylabel('Time (ms)')
-        plt.colorbar(l, extend='max')
+        factor=1
+        t = numpy.arange(0, (self.nt)/factor, factor)
+        print(len(t))
+        r = rec[:,2]
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+        offset = 0.004
+        for i in range(50):
+            drawWiggle(ax, rec[:,i], t, xoffset=i*offset, posColor='red', negColor='blue',
+                       alpha=0.2)
+        ax.invert_yaxis()
         plt.show()
 
     # Show the RTM image.
@@ -144,7 +214,7 @@ class marmousi2D(demo):
         src = IShot()
         src.set_receiver_pos(location)
         src.set_shape(self.nt, 1)
-        src.set_traces(self.time_series)
+        src.set_traces(self.time_series.reshape(self.nt, 1))
 
         Acoustic = Acoustic_cg(self.model, self.data, src, t_order=2, s_order=self.spc_order)
         rec, u, gflopss, oi, timings = Acoustic.Forward(save=False, dse='advanced')
