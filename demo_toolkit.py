@@ -109,18 +109,16 @@ class demo:
 
     # Show the shot record at the receivers.
     def plot_record(self, rec):
-        limit = 0.05*max(abs(numpy.min(rec)), abs(numpy.max(rec)))
-        factor=1
-        t = numpy.arange(0, (self.nt)/factor, factor)
-        print(len(t))
-        r = rec[:,2]
+        t = numpy.linspace(0, self.nt*self.dt*1e-3, self.nt)
         fig = plt.figure()
-        ax = fig.add_subplot(1,1,1)
-        offset = 0.004
-        for i in range(50):
-            drawWiggle(ax, rec[:,i], t, xoffset=i*offset, posColor='red', negColor='blue',
-                       alpha=0.2)
+        ax = fig.add_subplot(1, 1, 1)
+        for i in range(0, self.receiver_coords.shape[0]/2, 20): # loop over receivers, one every 20
+            offset = self.receiver_coords[i, 0]
+            coeff = 5*1e5
+            drawWiggle(ax, coeff*rec[:, i], t, xoffset=offset, posColor='black', negColor='white',
+                           alpha=0.5)
         ax.invert_yaxis()
+        plt.axis('off')
         plt.show()
 
     # Show the RTM image.
@@ -199,6 +197,7 @@ class marmousi2D(demo):
         self.time_series = 1.0e-3*self._source(numpy.linspace(t0, tn, nt), f0)
 
         receiver_coords = self._init_receiver_coords(self.nsrc)
+        self.receiver_coords = receiver_coords
         data.set_receiver_pos(receiver_coords)
         data.set_shape(nt, self.nsrc)
 
@@ -280,6 +279,7 @@ class small_marmousi2D(demo):
         receiver_coords[:, 0] = numpy.linspace(start, finish,
                                                num=self.nsrc)
         receiver_coords[:, 1] = self.origin[1] + 2 * self.spacing[1]
+        self.receiver_coords = receiver_coords
         self.data.set_receiver_pos(receiver_coords)
         self.data.set_shape(nt, self.nsrc)
 
